@@ -37,3 +37,42 @@
   * `Barrier_Open = TRUE`
 * **What went wrong?** The front of the train crossed, but the rear wagons are still on the crossing and the barriers already opened up.
 * **How we know:** Exit sensor has not triggered its cleared pulse, but gate motor controller received an OPEN command and lifted the gates. Cars will crash into the tail of the train.
+
+## Violation 5 (Breaks C5)
+* **Constraint:** `Barrier_Closed -> Warning_Active`
+* **System State:**
+  * `Barrier_Closed = TRUE`
+  * `Warning_Active = FALSE`
+* **What went wrong?** The barriers are down across the road, but lights and sirens turned off silently.
+* **How we know:** Gate limit switch confirms down position, but light/siren circuit current reading is inactive. At night or in fog, drivers cannot see the closed barrier barrier in the dark.
+
+---
+
+## Violation 6 (Breaks C6)
+* **Constraint:** `Sensor_Fault -> Barrier_Closed`
+* **System State:**
+  * `Sensor_Fault = TRUE`
+  * `Barrier_Closed = FALSE`
+* **What went wrong?** A wheel-detection sensor failed and sent error code, but the system kept the road barriers open.
+* **How we know:** Self-diagnostic unit logged sensor timeout error, but barrier motor output remained idle instead of triggering fail-safe drop. A train could arrive without being detected.
+
+---
+
+## Violation 7 (Breaks C7)
+* **Constraint:** `(Train_Approaching ∧ Barrier_Stuck) -> ¬Train_Signal_Green`
+* **System State:**
+  * `Train_Approaching = TRUE`
+  * `Barrier_Stuck = TRUE`
+  * `Train_Signal_Green = TRUE`
+* **What went wrong?** A car or branch jammed the barrier halfway down, but the train signal was still given green.
+* **How we know:** Barrier motor timed out without hitting the closed sensor, yet the interlocking system cleared the train signal. The train cannot stop and road traffic is not blocked.
+
+---
+
+## Violation 8 (Breaks C8)
+* **Constraint:** `(Train_Approaching ∨ Train_Present) -> Road_Signal_Red`
+* **System State:**
+  * `Train_Approaching = TRUE`
+  * `Road_Signal_Red = FALSE`
+* **What went wrong?** An incoming train was detected, but the road traffic lights stayed green or blank.
+* **How we know:** Approach sensor reading is positive, but road signal monitoring unit reports the red lamp driver is inactive. Vehicles keep driving onto the tracks right before gates close.
